@@ -55,9 +55,7 @@ if st.button("Get Answer", type="primary"):
                     "You are an expert research assistant for question-answering tasks. "
                     "Use the following pieces of retrieved context to answer the question. "
                     "If you don't know the answer, say that you don't know. "
-                    "Keep the answer clear, accurate, and concise.
-
-"
+                    "Keep the answer clear, accurate, and concise.\n\n"
                     "Context: {context}"
                 )
                 prompt = ChatPromptTemplate.from_messages([
@@ -66,14 +64,12 @@ if st.button("Get Answer", type="primary"):
                 ])
 
                 def format_docs(docs):
-                    return "
-
-".join(doc.page_content for doc in docs)
+                    return "\n\n".join(doc.page_content for doc in docs)
 
                 rag_chain_from_docs = (
-                    RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"]))) 
-                    | prompt 
-                    | llm 
+                    RunnablePassthrough.assign(context=(lambda x: format_docs(x["context"])))
+                    | prompt
+                    | llm
                     | StrOutputParser()
                 )
                 rag_chain = RunnableParallel(
