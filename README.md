@@ -8,8 +8,7 @@ A Streamlit application that allows users to upload PDF documents and ask questi
 - **Accurate Answers**: Powered by Google's Gemini LLM to generate precise answers based *only* on the document context.
 - **Local Embeddings**: Uses `all-MiniLM-L6-v2` via HuggingFace for efficient, free, and local text embeddings.
 
-## 🚀 Live Demo
-*[Insert your Streamlit Cloud App URL here once deployed]*
+
 
 ## 🛠️ Installation & Local Setup
 
