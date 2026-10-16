@@ -13,17 +13,16 @@ from langchain_core.output_parsers import StrOutputParser
 st.set_page_config(page_title="PDF QA Agent", layout="wide")
 st.title("📄 Upload & Chat with any PDF")
 
-# Sidebar for API Key
+# Sidebar for API Key (kept local to this session; never written to os.environ,
+# which is shared by every visitor of the same Streamlit process)
 api_key = st.sidebar.text_input("Google API Key", type="password", help="Enter your Google API Key here")
-if api_key:
-    os.environ['GOOGLE_API_KEY'] = api_key
 
 # Main UI components
 uploaded_file = st.file_uploader("Upload a PDF", type="pdf")
 question = st.text_input("Ask a question about the uploaded paper:")
 
 if st.button("Get Answer", type="primary"):
-    if not os.environ.get('GOOGLE_API_KEY'):
+    if not api_key:
         st.error("Please enter your Google API Key in the sidebar.")
     elif not uploaded_file:
         st.warning("Please upload a PDF document.")
@@ -31,6 +30,7 @@ if st.button("Get Answer", type="primary"):
         st.warning("Please enter a question.")
     else:
         with st.spinner("Processing PDF and searching for the answer..."):
+            temp_pdf_path = None
             try:
                 # 1. Save uploaded file temporarily
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
@@ -49,7 +49,7 @@ if st.button("Get Answer", type="primary"):
                 retriever = vector_store.as_retriever(search_kwargs={"k": 3})
 
                 # 4. Define LLM & RAG Chain
-                llm = ChatGoogleGenerativeAI(model="gemma-4-31b-it", temperature=0)
+                llm = ChatGoogleGenerativeAI(model="gemma-4-31b-it", temperature=0, google_api_key=api_key)
 
                 system_prompt = (
                     "You are an expert research assistant for question-answering tasks. "
@@ -85,3 +85,7 @@ if st.button("Get Answer", type="primary"):
 
             except Exception as e:
                 st.error(f"An error occurred: {e}")
+            finally:
+                # Don't leave users' documents behind on the server
+                if temp_pdf_path and os.path.exists(temp_pdf_path):
+                    os.remove(temp_pdf_path)
